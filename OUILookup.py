@@ -1,7 +1,14 @@
 import getopt
 import sys
-import requests
-from getmac import get_mac_address
+
+try:
+  import requests
+  from getmac import get_mac_address
+except:
+  print("Error when importing necessary libraries  to make the program work, it will proceed to start the intallation of these\n")
+  import subprocess
+  subprocess.call(['pip', 'install', "-r","requeriments.txt"])
+  print("Libraries were installed to execute the program\n")
 
 def main():#Funcion main en donde se iniciara toda la logica del codigo
 
@@ -15,7 +22,7 @@ def main():#Funcion main en donde se iniciara toda la logica del codigo
         #aunque no se utilicen. En este caso: -r y -m
         options, args = getopt.getopt(sys.argv[1:],"i,m",['ip=','mac=','help'])
     except:
-        print("Error: Parametros incorrectos.")
+        print("\nError: Incorrect parameters.")
         uso()
 
     for opt, arg in options:
@@ -25,17 +32,17 @@ def main():#Funcion main en donde se iniciara toda la logica del codigo
             argIpInput = arg
         elif opt in ('--mac'):
             argMacInput = arg
-
+     
     if(argIpInput and argMacInput):
-        print(f"Ingrese solo un parametro IP o MAC porfavor")
+        print(f"Please, enter only one IP or MAC parameter")
     elif(argIpInput == None and argMacInput == None):
-        print(f"Debe ingresar un parametro IP o MAC, para más informacion usar el comando [OUILookup.py --help] en consola")    
+        uso()
     else:    
         if(argIpInput):
             mac_address_output = get_mac_address(ip = argIpInput)
             if(mac_address_output):
-                vendorName = findByMac(mac_address_output)
-                print(f"MAC address : {mac_address_output}\nVendor : {vendorName}")#BUSCAN EL VENDOR EN ARCHIVO MAC
+                vendorName = findByMac(mac_address_output)#BUSCAN EL VENDOR EN ARCHIVO MAC
+                print(f"MAC address : {mac_address_output}\nVendor : {vendorName}")
             else:
                 print(f"Error: ip({argIpInput}) is outside the host network")
         elif(argMacInput):     
@@ -47,26 +54,26 @@ def fileVerification(fileName):#se verifica si el archivo de entrada ingresado e
         inputFile = open(fileName)
         inputFile.close()
     except:
-        print("Archivo OUILookup.txt no encontrado")
-        print("Solicitando request para descargar el archivo...\n")
+        print("File OUILookup.txt not found")
+        print(" Executing request to download the file...\n")
         try:
             OuiLookUpResponse = requests.get('https://gitlab.com/wireshark/wireshark/-/raw/master/manuf')
             createFile = open(fileName, "w", encoding="utf8")
             createFile.write(OuiLookUpResponse.text)
             createFile.close()
-            print("Archivo OUILookup.txt descargado exitosamente\n")
+            print("OUILookup.txt file downloaded successfully\n")
         except:    
-            sys.exit("Error al descargar el archivo, esto puede ser producto de que no hay una conexion a internet\no que existan problemas con la pagina proveedora del archivo")
+            sys.exit("Error when downloading the file, may be occasionated due there is no internet connection\nor there's a problem with the file's provider website")
 
-def findByMac(macAddress):#Funcion para buscar una macAddress en el archivo(o base de datos) de direcciones mac
-    if(len(macAddress) > 8):
+def findByMac(macAddress):#Funcion para buscar una macAddress en el archivo o en el sitio web(o base de datos) de direcciones mac
+    if(len(macAddress) > 8):#Se ve si la longitud de la mac es mayor a 8 debido a que tendria mas de 6 digitos(contando los separadores ":")
         macAddressNetId = (macAddress[:8]).upper()
     else: macAddressNetId = (macAddress).upper()
 
-    try:
+    try:#se hace un request para poder obtener el contenido mas actualizado de las direcciones mac
         OuiLookUpResponse = requests.get('https://gitlab.com/wireshark/wireshark/-/raw/master/manuf')
         contenedor = OuiLookUpResponse.text.split("\n")
-    except:    
+    except:#en caso de fallar el request se utiliza el archivo OUILookup.txt para realizar la busqueda del fabricante   
         OuiLookUpFile = open(fileName , "r", encoding="utf8")
         contenedor =  OuiLookUpFile.readlines()
         OuiLookUpFile.close()
@@ -80,11 +87,12 @@ def findByMac(macAddress):#Funcion para buscar una macAddress en el archivo(o ba
     return "Not found"  
 
 def uso():#Funcion para usar con el comando --help y mostrar como funcionan los parametros
-    print("Uso: " + sys.argv[0] + " --ip <ip address> || --mac <mac address> [--help] ")
-    print("\nParametros:")
+    print("\nUse in Windowns: OUILookup.py" + " --ip <ip address> | --mac <mac address> [--help] ")
+    print("\nUse in Linux/Mac: ./OUILookup.py" + " --ip <ip address> | --mac <mac address> [--help] ")
+    print("\nParameters:")
     print("     --ip: specify the IP of the host to query(ej: OUILookup.py --ip 192.168.0.6)")
     print("     --mac: specify the MAC address to query(ej: OUILookup.py --mac f8:28:19:46:2f:b9)")
-    print("     --help: muestra esta pantalla y termina. Opcional")
+    print("     --help: Display these instructions and finish")
     exit(1)
 
 main()

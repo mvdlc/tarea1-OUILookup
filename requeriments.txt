@@ -1,4 +1,2 @@
-getopt
-sys
 requests
 getmac
