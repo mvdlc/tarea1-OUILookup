@@ -9,6 +9,7 @@ except:
   import subprocess
   subprocess.call(['pip', 'install', "-r","requeriments.txt"])
   print("Libraries were installed to execute the program\n")
+  sys.exit("Please restart the program")
 
 def main():#Funcion main en donde se iniciara toda la logica del codigo
 
@@ -41,12 +42,12 @@ def main():#Funcion main en donde se iniciara toda la logica del codigo
         if(argIpInput):
             mac_address_output = get_mac_address(ip = argIpInput)
             if(mac_address_output):
-                vendorName = findByMac(mac_address_output)#BUSCAN EL VENDOR EN ARCHIVO MAC
+                vendorName = findByMac(fileName, mac_address_output)#BUSCAN EL VENDOR EN ARCHIVO MAC
                 print(f"MAC address : {mac_address_output}\nVendor : {vendorName}")
             else:
                 print(f"Error: ip({argIpInput}) is outside the host network")
         elif(argMacInput):     
-            vendorName = findByMac(argMacInput)
+            vendorName = findByMac(fileName, argMacInput)
             print(f"MAC address : {argMacInput}\nVendor : {vendorName}")
 
 def fileVerification(fileName):#se verifica si el archivo de entrada ingresado existe, en caso contrario se descarga.
@@ -65,7 +66,7 @@ def fileVerification(fileName):#se verifica si el archivo de entrada ingresado e
         except:    
             sys.exit("Error when downloading the file, may be occasionated due there is no internet connection\nor there's a problem with the file's provider website")
 
-def findByMac(macAddress):#Funcion para buscar una macAddress en el archivo o en el sitio web(o base de datos) de direcciones mac
+def findByMac(fileName, macAddress):#Funcion para buscar una macAddress en el archivo o en el sitio web(o base de datos) de direcciones mac
     if(len(macAddress) > 8):#Se ve si la longitud de la mac es mayor a 8 debido a que tendria mas de 6 digitos(contando los separadores ":")
         macAddressNetId = (macAddress[:8]).upper()
     else: macAddressNetId = (macAddress).upper()
